@@ -237,7 +237,8 @@ class TestLoomLoomScriptBackend(unittest.TestCase):
         self.assertEqual(batch.input_rows[2]["candidateIndex"], "3")
         self.assertEqual(
             batch.input_rows[0]["requirements"],
-            "输出语言：zh-CN\n目标时长（秒）：45\n风格或附加要求：知识类",
+            "Output language: zh-CN\nTarget duration (seconds): 45\n"
+            "Style or additional requirements: 知识类",
         )
         self.assertEqual(batch.input_rows[0]["subject"], "人工智能改变生活")
 

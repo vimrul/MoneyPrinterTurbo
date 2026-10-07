@@ -12,7 +12,7 @@ from app.services import voice
 ROOT_DIR = Path(__file__).parent.parent.parent
 WEBUI_MAIN = ROOT_DIR / "webui" / "Main.py"
 I18N_DIR = ROOT_DIR / "webui" / "i18n"
-LOCALES = ("de", "en", "es", "id", "pt", "ru", "tr", "vi", "zh")
+LOCALES = ("de", "en", "es", "id", "pt", "ru", "tr", "vi")
 
 # 每个服务商只维护一个官方入口。Chatterbox 是自托管服务，没有统一的 Key
 # 领取平台，因此链接到实际使用的兼容服务配置说明，避免误导用户注册第三方账号。
@@ -73,7 +73,7 @@ def test_tts_provider_inputs_render_the_standardized_labels():
         tts_server="azure-tts-v1",
         voice_name="",
     )
-    translations = _load_translation("zh")
+    translations = _load_translation("en")
 
     with (
         patch.object(config, "ui", test_ui),
@@ -86,7 +86,7 @@ def test_tts_provider_inputs_render_the_standardized_labels():
         patch.object(voice, "get_chatterbox_voices", return_value=[]),
     ):
         app = AppTest.from_file(str(WEBUI_MAIN), default_timeout=30)
-        app.session_state["ui_language"] = "zh"
+        app.session_state["ui_language"] = "en"
         app.run()
 
         for provider, (widget_key, label_key) in TTS_PROVIDER_WIDGETS.items():
@@ -374,7 +374,7 @@ def test_minimax_voices_load_only_on_demand_and_sync_the_selected_voice():
         ) as get_catalog,
     ):
         app = AppTest.from_file(str(WEBUI_MAIN), default_timeout=30)
-        app.session_state["ui_language"] = "zh"
+        app.session_state["ui_language"] = "en"
         app.run()
 
         # 普通页面 rerun 不能主动消耗 MiniMax API；只有点击按钮才查询。

@@ -529,25 +529,34 @@ def test_selected_shengsuanyun_provider_hides_duplicate_loomloom_key_input():
         patch.object(config, "try_save_config", return_value=True),
     ):
         app = AppTest.from_file(str(WEBUI_MAIN), default_timeout=30)
-        app.session_state["ui_language"] = "zh"
+        app.session_state["ui_language"] = "en"
         app.run()
 
         assert all(item.key != "loomloom_user_api_token" for item in app.text_input)
         generation_method = _widget_by_key(
-            app.selectbox, "script_generation_backend_select_zh"
+            app.selectbox, "script_generation_backend_select_en"
         )
         assert generation_method.value == "local"
-        assert "使用“设置”中当前选择的大模型 Provider 生成文案" in generation_method.help
+        assert (
+            "Generate the script with the current LLM Provider configured in Settings."
+            in generation_method.help
+        )
         assert "LoomLoom" not in generation_method.help
         assert "https://console.shengsuanyun.com/user/keys" not in generation_method.help
 
         generation_method.select("loomloom").run()
         generation_method = _widget_by_key(
-            app.selectbox, "script_generation_backend_select_zh"
+            app.selectbox, "script_generation_backend_select_en"
         )
         assert generation_method.value == "loomloom"
-        assert "LoomLoom 会批量生成多个独立文案候选" in generation_method.help
-        assert "已复用“设置 → 大模型提供商”中的胜算云 API Key" in generation_method.help
+        assert (
+            "LoomLoom generates multiple independent script candidates"
+            in generation_method.help
+        )
+        assert (
+            "The Shengsuan Cloud API Key from Settings is reused here"
+            in generation_method.help
+        )
         assert (
             "https://console.shengsuanyun.com/user/keys" in generation_method.help
         )

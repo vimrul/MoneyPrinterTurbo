@@ -31,12 +31,12 @@ def test_fluxionai_settings_defaults_and_connection_button():
     )
     with (
         patch.object(config, "app", app_config),
-        patch.object(config, "ui", dict(config.ui, language="zh")),
+        patch.object(config, "ui", dict(config.ui, language="en")),
         patch.object(config, "try_save_config", return_value=True),
         patch.object(llm, "test_connection", return_value=(True, "", 0.1)) as test_connection,
     ):
         app = AppTest.from_file(str(WEBUI_MAIN), default_timeout=60)
-        app.session_state["ui_language"] = "zh"
+        app.session_state["ui_language"] = "en"
         app.session_state["settings_dialog_open"] = True
         app.run()
         assert not app.exception
@@ -51,7 +51,7 @@ def test_fluxionai_settings_defaults_and_connection_button():
         )
         assert app_config["fluxionai_base_url"] == ""
         assert app_config["fluxionai_model_name"] == ""
-        assert any("OpenAI 接口分组" in str(item.value) for item in app.info)
+        assert any("OpenAI API group" in str(item.value) for item in app.info)
         _widget_by_key(app.text_input, "fluxionai_api_key_input").set_value(
             "test-ui-key"
         ).run()
@@ -175,13 +175,16 @@ def test_material_settings_target_uses_localized_tab_state_and_is_consumed():
     """素材快捷入口保存稳定业务 ID，渲染时再解析当前语言标签。"""
     with patch.object(config, "try_save_config", return_value=True):
         app = AppTest.from_file(str(WEBUI_MAIN), default_timeout=60)
-        app.session_state["ui_language"] = "zh"
+        app.session_state["ui_language"] = "en"
         app.session_state["settings_dialog_open"] = True
         app.session_state["settings_dialog_target_tab"] = "material"
         app.run()
 
         assert [str(item.value) for item in app.exception] == []
-        assert app.session_state["settings_dialog_tabs_zh"] == "素材来源设置"
+        assert (
+            app.session_state["settings_dialog_tabs_en"]
+            == "Material Source Settings"
+        )
         assert "settings_dialog_target_tab" not in app.session_state
 
 

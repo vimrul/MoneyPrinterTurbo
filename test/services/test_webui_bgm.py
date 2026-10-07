@@ -19,7 +19,7 @@ from app.services import bgm, elevenlabs_music, sonilo, voice
 ROOT_DIR = Path(__file__).parent.parent.parent
 WEBUI_MAIN = ROOT_DIR / "webui" / "Main.py"
 I18N_DIR = ROOT_DIR / "webui" / "i18n"
-TEST_LOCALES = ("en", "zh")
+TEST_LOCALES = ("en",)
 
 
 def _valid_wav_bytes() -> bytes:
@@ -59,7 +59,7 @@ class TestWebuiBackgroundMusic(unittest.TestCase):
     def _open_custom_bgm_panel(self, locale):
         app = AppTest.from_file(str(WEBUI_MAIN), default_timeout=30)
         # CI 没有本机 config.toml 中保存的语言。显式覆盖 session locale，既能
-        # 复现 CI 的英文默认值，也能保护开发者常用的中文界面回归。
+        # Exercise the English default locale used in the UI.
         app.session_state["ui_language"] = locale
         app.run()
         source_select = self._widget_by_key(app.selectbox, "bgm_type_select")

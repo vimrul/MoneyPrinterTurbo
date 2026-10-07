@@ -92,10 +92,10 @@ class VideoParams(BaseModel):
     """
     {
       "video_subject": "",
-      "video_aspect": "横屏 16:9（西瓜视频）",
-      "voice_name": "女生-晓晓",
+      "video_aspect": "landscape 16:9",
+      "voice_name": "en-US-JennyNeural-Female",
       "bgm_name": "random",
-      "font_name": "STHeitiMedium 黑体-中",
+      "font_name": "Arial.ttf",
       "text_color": "#FFFFFF",
       "font_size": 60,
       "stroke_color": "#000000",
@@ -205,7 +205,7 @@ class AudioRequest(BaseModel):
 class VideoScriptParams:
     """
     {
-      "video_subject": "春天的花海",
+      "video_subject": "A field of flowers in spring",
       "video_language": "",
       "paragraph_number": 1,
       "video_script_prompt": "",
@@ -213,7 +213,7 @@ class VideoScriptParams:
     }
     """
 
-    video_subject: Optional[str] = "春天的花海"
+    video_subject: Optional[str] = "A field of flowers in spring"
     video_language: Optional[str] = ""
     paragraph_number: int = Field(default=1, ge=1, le=10)
     video_script_prompt: str = Field(default="", max_length=2000)
@@ -230,9 +230,10 @@ class VideoTermsParams:
     }
     """
 
-    video_subject: Optional[str] = "春天的花海"
+    video_subject: Optional[str] = "A field of flowers in spring"
     video_script: Optional[str] = (
-        "春天的花海，如诗如画般展现在眼前。万物复苏的季节里，大地披上了一袭绚丽多彩的盛装。金黄的迎春、粉嫩的樱花、洁白的梨花、艳丽的郁金香……"
+        "Spring flowers bloom across a sunny field, with jasmine, cherry blossoms, "
+        "pear blossoms, and bright tulips."
     )
     amount: Optional[int] = 5
     match_materials_to_script: bool = False
@@ -466,7 +467,10 @@ class VideoScriptResponse(BaseResponse):
                 "status": 200,
                 "message": "success",
                 "data": {
-                    "video_script": "春天的花海，是大自然的一幅美丽画卷。在这个季节里，大地复苏，万物生长，花朵争相绽放，形成了一片五彩斑斓的花海..."
+                    "video_script": (
+                        "A field of spring flowers bursts into color as jasmine, "
+                        "cherry blossoms, pear blossoms, and tulips bloom..."
+                    )
                 },
             },
         }

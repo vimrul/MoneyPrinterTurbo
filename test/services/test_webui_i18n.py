@@ -228,15 +228,15 @@ class TestWebuiI18n(unittest.TestCase):
         language = utils.resolve_ui_language(
             saved_language="de",
             browser_locale="zh-CN",
-            supported_languages=["zh", "en", "de"],
+            supported_languages=utils.load_locales(str(I18N_DIR)),
         )
 
         self.assertEqual(language, "de")
 
     def test_browser_locale_is_normalized_to_supported_base_language(self):
         self.assertEqual(
-            utils.resolve_ui_language("", "zh-CN", ["zh", "en"]),
-            "zh",
+            utils.resolve_ui_language("", "zh-CN", ["en"]),
+            "en",
         )
         self.assertEqual(
             utils.resolve_ui_language(None, "pt_BR", ["en", "pt"]),
@@ -247,7 +247,7 @@ class TestWebuiI18n(unittest.TestCase):
         language = utils.resolve_ui_language(
             saved_language="",
             browser_locale="fr-FR",
-            supported_languages=["zh", "en"],
+            supported_languages=["en"],
         )
 
         self.assertEqual(language, "en")
@@ -268,25 +268,21 @@ class TestWebuiI18n(unittest.TestCase):
             "https://global.modelmesh.info/model",
         }
 
-        for locale in ("zh", "en"):
-            with self.subTest(locale=locale):
-                tips = _load_translation(locale)["llm_provider_tips.shengsuanyun"]
-                provider = get_llm_provider("shengsuanyun")
-                rendered = tips.format(
-                    api_key_url=provider.effective_api_key_url(),
-                    default_base_url=provider.effective_default_base_url,
-                    default_model=provider.default_model,
-                )
-                self.assertEqual(_markdown_urls(rendered), expected_urls)
+        tips = _load_translation("en")["llm_provider_tips.shengsuanyun"]
+        provider = get_llm_provider("shengsuanyun")
+        rendered = tips.format(
+            api_key_url=provider.effective_api_key_url(),
+            default_base_url=provider.effective_default_base_url,
+            default_model=provider.default_model,
+        )
+        self.assertEqual(_markdown_urls(rendered), expected_urls)
 
     def test_metaso_api_key_label_keeps_mpt_referral_link(self):
         """秘塔 Key 获取入口必须保留 MPT 追踪参数，避免赞助转化链路失效。"""
         expected_url = "https://metaso.cn/minimax-h3/?s=MPT"
 
-        for locale in ("zh", "en"):
-            with self.subTest(locale=locale):
-                label = _load_translation(locale)["Metaso MiniMax API Key"]
-                self.assertEqual(_markdown_urls(label), {expected_url})
+        label = _load_translation("en")["Metaso MiniMax API Key"]
+        self.assertEqual(_markdown_urls(label), {expected_url})
 
     def test_secondary_locales_cover_english_locale(self):
         en_translations = _load_translation("en")
@@ -372,7 +368,8 @@ class TestWebuiI18n(unittest.TestCase):
     def test_locale_files_do_not_redefine_a_translation_key(self):
         """
         同一 JSON 对象里出现重复键时，解析只保留最后一个，前一个被静默丢弃。
-        视频转场与字幕动画曾共用 "None" 键，中文转场下拉因此显示成「无动画」。
+        Video transitions and subtitle animations once shared the "None" key,
+        which caused the transition selector to show the wrong label.
         这里直接检查原始 locale 文本，避免同类覆盖再次逃过 tr() 键覆盖测试。
         """
 

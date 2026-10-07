@@ -36,6 +36,11 @@ _DEFAULT_EDGE_TTS_TIMEOUT_SECONDS = 30.0
 _SILICONFLOW_TTS_TIMEOUT_SECONDS = (10, 300)  # connect, read
 _MIMO_DEFAULT_BASE_URL = "https://api.xiaomimimo.com/v1"
 _MIMO_DEFAULT_TTS_MODEL = "mimo-v2.5-tts"
+MIMO_TTS_DEFAULT_STYLE_PROMPT = (
+    "Read naturally and clearly, suited to short-form video narration."
+)
+# Recognized only to replace this previous built-in default in existing configs.
+MIMO_TTS_LEGACY_DEFAULT_STYLE_PROMPT = "请用自然、清晰、适合短视频旁白的语气朗读。"
 MINIMAX_TTS_GLOBAL_URL = "https://api.minimax.io/v1/t2a_v2"
 MINIMAX_TTS_CN_URL = "https://api.minimaxi.com/v1/t2a_v2"
 MINIMAX_TTS_DEFAULT_MODEL = "speech-2.8-hd"
@@ -1998,7 +2003,7 @@ def mimo_tts(
     model_name = config.app.get("mimo_tts_model_name", "") or _MIMO_DEFAULT_TTS_MODEL
     style_prompt = config.app.get(
         "mimo_tts_style_prompt",
-        "请用自然、清晰、适合短视频旁白的语气朗读。",
+        MIMO_TTS_DEFAULT_STYLE_PROMPT,
     )
 
     _configure_pydub_ffmpeg(AudioSegment)

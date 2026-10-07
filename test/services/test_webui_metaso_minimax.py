@@ -77,14 +77,14 @@ def test_invalid_metaso_resolution_requires_an_explicit_replacement():
         video_source="pexels",
         metaso_minimax_resolution="720P",
     )
-    test_ui = dict(config.ui, language="zh")
+    test_ui = dict(config.ui, language="en")
     with (
         patch.object(config, "app", test_config),
         patch.object(config, "ui", test_ui),
         patch.object(config, "try_save_config", return_value=True),
     ):
         app = AppTest.from_file(str(WEBUI_MAIN), default_timeout=60)
-        app.session_state["ui_language"] = "zh"
+        app.session_state["ui_language"] = "en"
         app.session_state["settings_dialog_open"] = True
         app.session_state["settings_dialog_target_tab"] = "material"
         app.run()

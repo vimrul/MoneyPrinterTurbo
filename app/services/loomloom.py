@@ -342,12 +342,12 @@ class LoomLoomScriptBackend:
             raise ValueError("duration_seconds must be greater than zero")
 
         requirements = (
-            f"输出语言：{str(language or 'auto').strip() or 'auto'}\n"
-            f"目标时长（秒）：{duration_seconds}"
+            f"Output language: {str(language or 'auto').strip() or 'auto'}\n"
+            f"Target duration (seconds): {duration_seconds}"
         )
         normalized_style = str(style or "").strip()
         if normalized_style:
-            requirements += f"\n风格或附加要求：{normalized_style}"
+            requirements += f"\nStyle or additional requirements: {normalized_style}"
 
         rows = tuple(
             {

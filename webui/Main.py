@@ -156,7 +156,7 @@ DEFAULT_VIDEO_CODEC_OPTION = "__default__"
 # 的参考价，用于帮助选择模型；最终费用按实际模型调用结算。别名同时覆盖
 # 当前展示名和常见模型 ID，未收录的新模型会自然返回空价格，不影响选择或报价。
 LOOMLOOM_VIDEO_MODEL_PRICES = (
-    (("veo31fast", "googleveo31fastpreview"), "￥0.700/秒", "￥0.700/秒"),
+    (("veo31fast", "googleveo31fastpreview"), "CNY 0.700/sec", "CNY 0.700/sec"),
     (
         (
             "通义万相22图生视频fastlora",
@@ -166,29 +166,50 @@ LOOMLOOM_VIDEO_MODEL_PRICES = (
             "wanx22i2vfastlora",
             "wanx22t2vfastlora",
         ),
-        "￥0.350–0.770/条",
-        "￥0.350/条（480P）；￥0.770/条（720P）",
+        "CNY 0.350–0.770/clip",
+        "CNY 0.350/clip (480p); CNY 0.770/clip (720p)",
     ),
-    (("即梦30文生视频720p", "jimeng30t2v720p"), "￥0.230/秒", "￥0.230/秒"),
-    (("即梦30pro视频", "jimeng30pro视频", "jimeng30provideo"), "￥1.000/秒", "￥1.000/秒"),
-    (("veo3", "googleveo3"), "￥1.400/秒", "￥1.400/秒"),
-    (("veo31", "googleveo31"), "￥1.400/秒", "￥1.400/秒"),
+    (("即梦30文生视频720p", "jimeng30t2v720p"), "CNY 0.230/sec", "CNY 0.230/sec"),
+    (
+        ("即梦30pro视频", "jimeng30pro视频", "jimeng30provideo"),
+        "CNY 1.000/sec",
+        "CNY 1.000/sec",
+    ),
+    (("veo3", "googleveo3"), "CNY 1.400/sec", "CNY 1.400/sec"),
+    (("veo31", "googleveo31"), "CNY 1.400/sec", "CNY 1.400/sec"),
     (
         ("klingv2", "可灵v2"),
-        "￥10.00–20.00/条",
-        "￥10.00/条（5 秒）；￥20.00/条（10 秒）",
+        "CNY 10.00–20.00/clip",
+        "CNY 10.00/clip (5 sec); CNY 20.00/clip (10 sec)",
     ),
     (
         ("klingv21master", "可灵v21master"),
-        "￥10.00–20.00/条",
-        "￥10.00/条（5 秒）；￥20.00/条（10 秒）",
+        "CNY 10.00–20.00/clip",
+        "CNY 10.00/clip (5 sec); CNY 20.00/clip (10 sec)",
     ),
     (
         ("viduq3pro",),
-        "￥0.440–1.000/秒",
-        "￥0.440/秒（540P）；￥0.940/秒（720P）；￥1.000/秒（1080P）",
+        "CNY 0.440–1.000/sec",
+        "CNY 0.440/sec (540p); CNY 0.940/sec (720p); CNY 1.000/sec (1080p)",
     ),
 )
+LOOMLOOM_VIDEO_MODEL_ENGLISH_LABELS = {
+    "通义万相22图生视频fastlora": "Tongyi Wanxiang 2.2 Image-to-Video Fast LoRA",
+    "通义万相22文生视频fastlora": "Tongyi Wanxiang 2.2 Text-to-Video Fast LoRA",
+    "tongyiwanxiang22i2vfastlora": "Tongyi Wanxiang 2.2 Image-to-Video Fast LoRA",
+    "tongyiwanxiang22t2vfastlora": "Tongyi Wanxiang 2.2 Text-to-Video Fast LoRA",
+    "wanx22i2vfastlora": "Tongyi Wanxiang 2.2 Image-to-Video Fast LoRA",
+    "wanx22t2vfastlora": "Tongyi Wanxiang 2.2 Text-to-Video Fast LoRA",
+    "即梦30文生视频720p": "Jimeng 3.0 Text-to-Video (720p)",
+    "jimeng30t2v720p": "Jimeng 3.0 Text-to-Video (720p)",
+    "即梦30pro视频": "Jimeng 3.0 Pro Video",
+    "jimeng30pro视频": "Jimeng 3.0 Pro Video",
+    "jimeng30provideo": "Jimeng 3.0 Pro Video",
+    "可灵v2": "Kling v2",
+    "klingv2": "Kling v2",
+    "可灵v21master": "Kling v2.1 Master",
+    "klingv21master": "Kling v2.1 Master",
+}
 DEFAULT_SUBTITLE_SETTINGS = {
     "subtitle_enabled": True,
     "font_name": "MicrosoftYaHeiBold.ttc",
@@ -665,7 +686,32 @@ def _initialize_session_state():
         if recovered is not None:
             st.session_state["cross_post_recovery_checked"] = True
 
-    saved_ui_language = config.ui.get("language", "")
+    saved_ui_language = str(config.ui.get("language", "") or "").strip()
+    saved_chinese_ui_language = (
+        saved_ui_language.lower().replace("_", "-").split("-", 1)[0] == "zh"
+    )
+    legacy_mimo_style_prompt = (
+        str(config.app.get("mimo_tts_style_prompt", "") or "").strip()
+        == voice.MIMO_TTS_LEGACY_DEFAULT_STYLE_PROMPT
+    )
+    settings_migration_needed = saved_chinese_ui_language or legacy_mimo_style_prompt
+    if settings_migration_needed and not st.session_state.get(
+        "legacy_english_settings_migration_requested"
+    ):
+        if saved_chinese_ui_language:
+            logger.info(
+                "Replacing unsupported saved Chinese UI language with English"
+            )
+            _set_runtime_config("ui", "language", "en")
+        if legacy_mimo_style_prompt:
+            logger.info("Replacing the previous MiMo TTS style prompt with English")
+            _set_runtime_config(
+                "app", "mimo_tts_style_prompt", voice.MIMO_TTS_DEFAULT_STYLE_PROMPT
+            )
+        _save_runtime_config()
+        st.session_state["legacy_english_settings_migration_requested"] = True
+    if saved_chinese_ui_language:
+        saved_ui_language = "en"
     browser_locale = st.context.locale
     initial_ui_language = utils.resolve_ui_language(
         saved_language=saved_ui_language,
@@ -774,6 +820,12 @@ def _initialize_session_state():
     }
     for key, value in defaults.items():
         st.session_state.setdefault(key, value)
+    if st.session_state["ui_language"] not in locales:
+        st.session_state["ui_language"] = initial_ui_language
+    if st.session_state.get("top_language_code_selector") not in locales:
+        st.session_state["top_language_code_selector"] = st.session_state[
+            "ui_language"
+        ]
 
 
 _initialize_session_state()
@@ -1815,7 +1867,7 @@ def _render_top_bar():
                     selected_index = i
 
             selected_language_code = st.selectbox(
-                "Language / 语言",
+                tr("Language"),
                 options=language_codes,
                 index=selected_index,
                 format_func=lambda code: locales[code].get("Language", code),
@@ -2179,20 +2231,13 @@ def get_llm_provider_tips(provider_id, **kwargs):
     if provider is None:
         return ""
 
-    # Provider 配置说明目前统一维护中文和英文两套规范模板；其它界面语言
-    # 统一使用英文，避免在 locale 中复制英文后长期不同步。后续某个语种完成
-    # 全量翻译后，再将它加入这里的独立维护范围。
-    ui_language = st.session_state.get("ui_language", "en")
-    tips_language = ui_language if ui_language in {"zh", "en"} else "en"
-    tips = (
-        locales.get(tips_language, {}).get("Translation", {}).get(provider.tips_key, "")
-    )
+    # Provider setup guidance is maintained in English and remains consistent
+    # regardless of the selected UI locale.
+    tips = locales.get("en", {}).get("Translation", {}).get(provider.tips_key, "")
     if not tips:
         return tips
 
-    service_endpoint = provider.preferred_service_endpoint(
-        prefer_international=tips_language == "en"
-    )
+    service_endpoint = provider.preferred_service_endpoint(prefer_international=True)
     api_key_url = (
         service_endpoint.api_key_url
         if service_endpoint
@@ -2209,9 +2254,7 @@ def get_llm_provider_tips(provider_id, **kwargs):
         "model_docs_url": (
             service_endpoint.model_docs_url
             if service_endpoint and service_endpoint.model_docs_url
-            else provider.effective_model_docs_url(
-                prefer_international=tips_language == "en"
-            )
+            else provider.effective_model_docs_url(prefer_international=True)
         ),
         **{
             f"default_{field.config_suffix}": field.default_value
@@ -2257,12 +2300,8 @@ def get_llm_provider_label(provider):
 
 
 def get_tts_provider_tips(provider_id):
-    # TTS 配置说明与 LLM Provider 采用相同维护策略：只维护中英文，
-    # 其它界面语言统一回退英文，避免复制后长期不同步。
-    ui_language = st.session_state.get("ui_language", "en")
-    tips_language = ui_language if ui_language in {"zh", "en"} else "en"
     return (
-        locales.get(tips_language, {})
+        locales.get("en", {})
         .get("Translation", {})
         .get(f"tts_provider_tips.{provider_id}", "")
     )
@@ -3384,17 +3423,14 @@ def _render_settings_dialog():
             provider_tip_context = {}
             selected_service_endpoint = None
             if llm_provider_spec.service_endpoints:
-                # Kimi 等 Provider 的中国站和国际站使用不同账号体系。只让用户
-                # 选择服务区域，再由 Registry 同步 API 申请入口和 Base URL，
-                # 避免手工组合错误。已有空 Base URL 配置继续沿用中国站，只有
-                # 尚未填写 Key 的全新配置才根据界面语言推荐对应入口。
+                # Kimi and some other providers use separate China and
+                # international accounts. Keep the selected service region
+                # paired with its API key URL and Base URL.
                 selected_service_endpoint = (
                     llm_provider_spec.select_service_endpoint(
                         configured_llm_base_url,
                         has_api_key=bool(str(llm_api_key).strip()),
-                        prefer_international=(
-                            st.session_state.get("ui_language", "en") != "zh"
-                        ),
+                        prefer_international=True,
                     )
                 )
                 endpoint_options = [
@@ -4227,10 +4263,34 @@ def _loomloom_video_model_price(model):
     return "", ""
 
 
+def _english_loomloom_model_label(model_id, display_name=""):
+    """Return a safe English label for model IDs and provider display names."""
+    identifiers = (
+        _normalize_loomloom_model_identifier(model_id),
+        _normalize_loomloom_model_identifier(display_name),
+    )
+    label = next(
+        (
+            LOOMLOOM_VIDEO_MODEL_ENGLISH_LABELS[item]
+            for item in identifiers
+            if item in LOOMLOOM_VIDEO_MODEL_ENGLISH_LABELS
+        ),
+        "",
+    )
+    if not label:
+        label = str(display_name or model_id or "").strip()
+        if re.search(r"[\u3400-\u9fff]", label):
+            label = str(model_id or "").strip()
+        if not label or re.search(r"[\u3400-\u9fff]", label):
+            label = "Video model"
+    return label
+
+
 def _format_loomloom_video_model_option(model):
-    """在模型名右侧展示短价格，避免多档分辨率价格把下拉框撑得过宽。"""
+    """Show an English model label and compact reference price in the selector."""
     compact_price, _ = _loomloom_video_model_price(model)
-    return f"{model.display_name} · {compact_price}" if compact_price else model.display_name
+    label = _english_loomloom_model_label(model.model_id, model.display_name)
+    return f"{label} · {compact_price}" if compact_price else label
 
 
 def _effective_voice_rate_before_audio_panel():
@@ -4432,7 +4492,9 @@ def _render_loomloom_video_settings(params):
             format_func=lambda model_id: (
                 _format_loomloom_video_model_option(models_by_id[model_id])
                 if model_id in models_by_id
-                else tr("Unavailable AI Video Model").format(model=model_id)
+                else tr("Unavailable AI Video Model").format(
+                    model=_english_loomloom_model_label(model_id)
+                )
             ),
         )
         st.session_state["loomloom_video_model_id"] = selected_model_id
